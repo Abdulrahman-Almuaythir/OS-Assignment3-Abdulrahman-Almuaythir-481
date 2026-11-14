@@ -240,7 +240,7 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+[I learned that synchronization prevents race conditions when multiple CPU threads access shared data. In my assignment, I used ReentrantLock to protect the ReadyQueue and SharedStats classes. I used try/finally to ensure that locks are always released. I also used a counting Semaphore to replace busy waiting when the queue was empty. These changes helped the program produce correct results without synchronization errors.]
 
 ## Question 2: What was the most challenging part of this assignment?
 
@@ -248,7 +248,7 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+[The most challenging part was protecting shared data when multiple CPU threads were running. I had to make sure that only one thread could modify the ReadyQueue at a time. I also needed to protect the shared statistics to prevent incorrect counter values. Choosing where to lock and unlock was important to avoid synchronization problems. I solved this by using ReentrantLock with try/finally in the shared methods.]
 
 ## Question 3: How did you overcome the challenges you faced?
 
@@ -256,7 +256,7 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+[I overcame the challenges by reading the README instructions carefully. I reviewed the code to understand how the CPU threads access shared data. I used ReentrantLock to protect the shared methods and prevent race conditions. I also used Semaphore to make CPU threads wait without busy waiting. Finally, I tested the program to check that the synchronization worked correctly.]
 
 ## Question 4: Where can synchronization concepts be applied in real-world applications?
 
@@ -264,7 +264,7 @@
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+[Synchronization is important in real-world applications that use multiple threads. For example, banking systems use synchronization to protect account balances. It prevents multiple transactions from changing the same data incorrectly. Online booking systems also use synchronization to prevent double bookings. These examples show how synchronization helps maintain data accuracy and consistency.]
 
 ### Optional: What would you like to learn more about?
 
@@ -298,20 +298,36 @@
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+[The original version showed race conditions, with 28 expected context switches but only 26 observed in the test output. CPU-1 and CPU-2 could both read contextSwitchCount = 12 before either updated it. After RaceWindow.pause(), both could write 13 instead of 14, causing a lost update. This can happen without RaceWindow because thread scheduling is unpredictable. The bug is difficult to detect because the results can change between runs.]
 
 Verification block of the **original starter**:
 ```
-[Paste the verification block (or the exception/watchdog message) of the starter here]
+[Context switches:   expected 28     observed 26     ✘
+Completed processes: expected 15     observed 14     ✘
+Total service time:  expected 61919  observed 58592  ✘
+Busy-waiting polls:  expected 0      observed 1068   ✘
+
+✘ At least one check failed.]
 ```
 
 Verification block of **my final version**:
 ```
-[Paste the verification block of your final version here (all lines ✔)]
+[Context switches:   expected 28     observed 28     ✔
+Completed processes: expected 15     observed 15     ✔
+Total service time:  expected 61919  observed 61919  ✔
+Busy-waiting polls:  expected 0      observed 0      ✔
+
+✔ All shared values are consistent.]
 ```
 
 **Explanation of the timeline:**
-[Explain the lost update step by step.]
+[CPU-1 reads contextSwitchCount = 12
+CPU-2 reads contextSwitchCount = 12
+CPU-1 executes RaceWindow.pause()
+CPU-2 executes RaceWindow.pause()
+CPU-1 writes 13
+CPU-2 writes 13
+Result: 13 instead of 14 (one lost update).]
 
 ## Question 2: Critical Sections and Lock Granularity
 
@@ -321,7 +337,7 @@ Verification block of **my final version**:
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+[I protected ReadyQueue.add(), poll(), processOf(), and snapshot() using a ReentrantLock. In SharedStats, I used one separate ReentrantLock to protect all three counters and their update and getter methods. Using one statistics lock simplifies synchronization but can increase contention compared to separate locks. The queue has a different lock to allow independent operations, improving progress and ensuring mutual exclusion within each critical section. However, the default ReentrantLock is nonfair, so bounded waiting is not guaranteed.]
 
 | Critical section (variable / method) | Lock used | Why it needs protection |
 |---|---|---|
@@ -336,7 +352,7 @@ Verification block of **my final version**:
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+[In the original code, CPUs repeatedly checked the empty ready queue, causing busy waiting and wasting CPU time. In my final version, I used a counting Semaphore initialized to zero because the queue starts empty. After adding the 15 initial processes, the semaphore had 15 permits before the CPUs started acquiring them. The acquire() method blocks CPUs when no processes are available instead of repeatedly checking the queue. When the last process finishes, wakeAllCpus(totalCPUs) releases permits so waiting CPUs can terminate without deadlock.]
 
 ## Question 4: Classical Problems and Deadlock
 
@@ -347,24 +363,26 @@ Verification block of **my final version**:
 **Your Answer:** *(3-5 sentences)*
 
 **Classical problem and roles**:
-[Name the problem; who is the producer, who is the consumer?]
+[The classical problem is Producer-Consumer, where the main thread produces the initial processes, CPU workers consume them, and CPUs also act as producers when they re-enqueue unfinished processes.
+]
 
 **Semaphores for a bounded queue (name and initial value)**:
-[Name the three semaphores and their initial values.]
+[For a bounded queue of capacity K, the three semaphores are empty = K, full = 0, and mutex = 1.
+.]
 
 **Deadlock scenario and prevention**:
-[Describe the scenario and the necessary condition you would break.]
+[Deadlock can occur when a producer holds mutex while waiting for empty and a consumer needs mutex to remove an item, so I would acquire empty or full before mutex to break the hold-and-wait condition.]
 
 ## Summary
 
 **Key concepts I understood through these questions:**
-1.
-2.
-3.
+1.Race Conditions
+2.Semaphores
+3.Deadlock Prevention
 
 **Concepts I need to study more:**
-1.
-2.
+1.Lock granularity and fairness in multithreaded programs.
+2.Deadlock prevention and bounded-buffer synchronization.
 
 ---
 
